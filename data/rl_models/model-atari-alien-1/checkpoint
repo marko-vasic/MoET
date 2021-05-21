@@ -1,0 +1,2 @@
+model_checkpoint_path: "/mnt/afs/szymon/blogpost3/atari-a/Alien-123/model-49146943/saved"
+all_model_checkpoint_paths: "/mnt/afs/szymon/blogpost3/atari-a/Alien-123/model-49146943/saved"

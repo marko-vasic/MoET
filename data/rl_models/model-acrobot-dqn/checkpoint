@@ -1,0 +1,2 @@
+model_checkpoint_path: "/usr/local/google/home/kaiyuanw/projects/explainableRL/viper/python/policy_nn.ckpt"
+all_model_checkpoint_paths: "/usr/local/google/home/kaiyuanw/projects/explainableRL/viper/python/policy_nn.ckpt"
