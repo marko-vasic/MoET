@@ -1,6 +1,7 @@
 from viper.util.serialization import load_policy
 from viper.core.rl import get_rollouts
 from viper.evaluation.util import *
+from viper.core.dt import save_dt_policy_viz
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 import numpy as np
@@ -14,7 +15,7 @@ from viper.util.util import ensure_dir_exists
 from viper.util.util import ensure_parent_exists
 
 # Directory containing best policies.
-BEST_POLICIES_DIR = '/home/UNK/projects/explainableRL/viper/data/mountaincar/best'
+BEST_POLICIES_DIR = '/home/unk/projects/explainableRL/viper/data/mountaincar/best'
 # Depths of decision trees.
 DEPTHS = [1, 2, 3, 4, 5]
 # Experts used for MOE.
@@ -610,6 +611,127 @@ class CartpoleE2D1Policy:
         return np.array(predictions)
 
 
+class CartpoleVisualization(object):
+    def __init__(self, interpolation_steps=100):
+        # https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
+        self.interpolation_steps = float(interpolation_steps)
+        self.min_cp = -4.8
+        self.max_cp = 4.8
+        self.step_cp = ((self.max_cp - self.min_cp) / self.interpolation_steps)
+        self.min_pa = -0.418
+        self.max_pa = 0.418
+        self.step_pa = ((self.max_pa - self.min_pa) / self.interpolation_steps)
+
+        self.min_pv = -0.15
+        self.max_pv = 0.15
+        self.step_pv = ((self.max_pv - self.min_pv) / self.interpolation_steps)
+        self.min_cv = -2.
+        self.max_cv = 2.
+        self.step_cv = ((self.max_cv - self.min_cv) / self.interpolation_steps)
+
+
+        self.rl_policy = load_rl_policy('cartpole')
+
+    def visualize_policy(self, policy, out_file=None):
+        cp = 0.
+        pa = 0.
+
+        x, y = np.meshgrid(np.arange(self.min_pv,
+                                     self.max_pv + self.step_pv,
+                                     self.step_pv),
+                           np.arange(self.min_cv,
+                                     self.max_cv + self.step_cv,
+                                     self.step_cv))
+        z = np.zeros((x.shape[0] - 1, x.shape[1] - 1), dtype=np.int)
+
+        for i in range(x.shape[0] - 1):
+            for j in range(x.shape[1] - 1):
+                pv = x[i][j]
+                cv = y[i][j]
+                decision = policy.predict(
+                    np.array([[cp, cv, pa, pv]]))[0]
+                z[i, j] = decision
+
+        z_min = 0
+        z_max = 1
+
+        fig, ax = plt.subplots(figsize=(5, 3.5))
+
+        colorsList = ['green', 'blue']
+        cmap = colors.ListedColormap(colorsList)
+
+        c = ax.pcolormesh(x, y, z, cmap=cmap, vmin=z_min, vmax=z_max)
+        ax.set_xlabel('pole angular velocity')
+        ax.set_ylabel('cart velocity')
+        # set the limits of the plot to the limits of the data
+        ax.axis([self.min_pv, self.max_pv, self.min_cv, self.max_cv])
+
+        # fig.colorbar(c, ax=ax)
+
+        fig.tight_layout()
+        if out_file:
+            ensure_parent_exists(out_file)
+            plt.savefig(out_file)
+        else:
+            plt.show()
+        plt.close(fig)
+
+    def visualize_policy_3D(self, policy, out_file=None):
+        cp = 0.
+        x, y, d = np.meshgrid(np.arange(self.min_pv,
+                                        self.max_pv,
+                                        self.step_pv),
+                              np.arange(self.min_cv,
+                                        self.max_cv,
+                                        self.step_cv),
+                              np.arange(self.min_pa,
+                                        self.max_pa,
+                                        self.step_pa))
+        predictions = np.zeros((x.shape[0],
+                                x.shape[1],
+                                x.shape[2]),
+                               dtype=np.int)
+
+        for i in range(x.shape[0]):
+            for j in range(x.shape[1]):
+                for k in range(x.shape[2]):
+                    pv = x[i][j][k]
+                    cv = y[i][j][k]
+                    pa = d[i][j][k]
+                    decision = policy.predict(
+                        np.array([[cp, cv, pa, pv]]))[0]
+                    predictions[i, j, k] = decision
+
+        from mpl_toolkits.mplot3d import axes3d, \
+            Axes3D  # <-- Note the capitalization!
+        fig = plt.figure()
+
+        ax = Axes3D(fig)
+
+        colorsList = ['green', 'blue']
+        cmap = colors.ListedColormap(colorsList)
+
+        ax.scatter(x, y, d, c=predictions.flatten(), cmap=cmap)
+
+        ax.set_xlabel('pole angular velocity')
+        ax.set_ylabel('cart velocity')
+        ax.set_zlabel('pole angle')
+        # # set the limits of the plot to the limits of the data
+        # ax.axis([self.min_pv, self.max_pv,
+        #          self.min_cv, self.max_cv,
+        #          self.min_pa, self.max_pa])
+
+        # fig.colorbar(c, ax=ax)
+
+        fig.tight_layout()
+        if out_file:
+            ensure_parent_exists(out_file)
+            plt.savefig(out_file)
+        else:
+            plt.show()
+        plt.close(fig)
+
+
 def evaluate(student_policy, subject_name, n_test_rollouts):
     teacher_policy = load_rl_policy(subject_name)
 
@@ -637,7 +759,7 @@ def train_gate_dt(env, policy, n_rollouts, max_depth):
     dt_gate.fit(obss, gate_outputs)
 
     accuracy = accuracy_score(dt_gate.predict(obss), gate_outputs)
-    print "DT gate accuracy: {}".format(accuracy)
+    print("DT gate accuracy: {}".format(accuracy))
 
     moedtgate_policy = MOEDTGatePolicy(policy, dt_gate)
 
@@ -648,7 +770,7 @@ def train_dt_gate():
     subject_name = 'cartpole'
     env = create_gym_env(subject_name)
     policy = load_policy(
-        '/home/UNK/projects/explainableRL/viper/data/cartpole/0/MOE',
+        '/home/unk/projects/explainableRL/viper/data/cartpole/0/MOE',
         'moe_policy_e2_d1.pk')
     n_rollouts = 100
     max_depth = 3
@@ -665,7 +787,7 @@ def print_gate_weights(dirname, filename):
 
 
 def visualize_selected():
-    out_dir = '/home/UNK/Downloads/nips/selected'
+    out_dir = '/home/unk/Downloads/nips/selected'
 
     # Update font size
     # import matplotlib
@@ -710,7 +832,7 @@ def visualize_selected():
 
 
 def visualize_all():
-    out_dir = '/home/UNK/Downloads/nips'
+    out_dir = '/home/unk/Downloads/nips'
 
     rl_policy = load_rl_policy('mountaincar')
     MountainCarVisualization().visualize_policy(rl_policy,
@@ -719,10 +841,10 @@ def visualize_all():
     MountainCarVisualization().visualize_qvalues(
         os.path.join(out_dir, 'qimportance.pdf'))
 
-    visualize_viper_policies('/home/UNK/Downloads/nips/viper_policies')
-    visualize_moe_policies('/home/UNK/Downloads/nips/moe_policies',
+    visualize_viper_policies('/home/unk/Downloads/nips/viper_policies')
+    visualize_moe_policies('/home/unk/Downloads/nips/moe_policies',
                            hard_prediction=False)
-    visualize_moe_policies('/home/UNK/Downloads/nips/moehard_policies',
+    visualize_moe_policies('/home/unk/Downloads/nips/moehard_policies',
                            hard_prediction=True)
 
     visualize_viper_mispredictions(
@@ -733,15 +855,15 @@ def visualize_all():
         os.path.join(out_dir, 'moehard_mispredictions'),
         hard_prediction=True)
 
-    visualize_gates_soft('/home/UNK/Downloads/nips/gates_soft')
-    visualize_gates_hard('/home/UNK/Downloads/nips/gates_hard')
+    visualize_gates_soft('/home/unk/Downloads/nips/gates_soft')
+    visualize_gates_hard('/home/unk/Downloads/nips/gates_hard')
 
 
 def visualize_some():
     visualizer = MountainCarVisualization()
 
     moe_policy = load_policy(
-        '/home/UNK/projects/explainableRL/viper/data/mountaincar/1/MOE',
+        '/home/unk/projects/explainableRL/viper/data/mountaincar/1/MOE',
         'moe_policy_e8_d2.pk')
     moe_hard_policy = moe_policy.clone()
     moe_hard_policy.hard_prediction = True
@@ -749,33 +871,33 @@ def visualize_some():
     moe_analytical_policy = MOEAnalyticalPolicy(moe_hard_policy)
     rl_policy = load_rl_policy('mountaincar')
     viper_policy = load_policy(
-        '/home/UNK/projects/explainableRL/viper/data/mountaincar/1/ViperPlus/',
+        '/home/unk/projects/explainableRL/viper/data/mountaincar/1/ViperPlus/',
         'dt_policy_d2.pk')
 
     visualizer.visualize_gate(moe_policy=moe_policy,
                               hard_prediction=True,
-                              out_file='/home/UNK/Downloads/gates.pdf')
+                              out_file='/home/unk/Downloads/gates.pdf')
 
     visualizer.visualize_policy(rl_policy,
-                                out_file='/home/UNK/Downloads/policy_agent.pdf')
+                                out_file='/home/unk/Downloads/policy_agent.pdf')
     visualizer.visualize_policy(moe_policy,
-                                out_file='/home/UNK/Downloads/policy_moe.pdf')
+                                out_file='/home/unk/Downloads/policy_moe.pdf')
     visualizer.visualize_policy(moe_hard_policy,
-                                out_file='/home/UNK/Downloads/policy_moe_hard.pdf')
+                                out_file='/home/unk/Downloads/policy_moe_hard.pdf')
     visualizer.visualize_policy(moe_analytical_policy,
-                                out_file='/home/UNK/Downloads/policy_moe_analytical.pdf')
+                                out_file='/home/unk/Downloads/policy_moe_analytical.pdf')
     visualizer.visualize_policy(viper_policy,
-                                out_file='/home/UNK/Downloads/policy_viper.pdf')
+                                out_file='/home/unk/Downloads/policy_viper.pdf')
 
     visualizer.visualize_mispredictions(rl_policy, moe_policy,
-                                        out_file='/home/UNK/Downloads/mispredictions_moe.pdf')
+                                        out_file='/home/unk/Downloads/mispredictions_moe.pdf')
     visualizer.visualize_mispredictions(rl_policy, viper_policy,
-                                        out_file='/home/UNK/Downloads/mispredictions_viper.pdf')
+                                        out_file='/home/unk/Downloads/mispredictions_viper.pdf')
 
 
-def main():
+def mountaincar():
     moe_policy = load_policy(
-        '/home/UNK/projects/explainableRL/viper/data/cartpole/best/MOEHard',
+        '/home/unk/projects/explainableRL/viper/data/cartpole/best/MOEHard',
         'moe_policy_e2_d1.pk')
     moe_policy.predict_hard = True
 
@@ -795,6 +917,110 @@ def main():
     # visualize_selected()
     # visualize_all()
     # visualize_some()
+
+class Cartpole_moeth_extracted_policy:
+    def predict(self, observations):
+        # 11.0226837694925 * cp + 36.4527772940471 * cv + 104.177279627728 * pa + 127.855102723844 * pv + 5.04559027172444 > 0
+        predictions = []
+        for i in range(observations.shape[0]):
+            observation = observations[i]
+            cp, cv, pa, pv = observation
+            # if 11.0226837694925 * cp + 36.4527772940471 * cv + 104.177279627728 * pa + 127.855102723844 * pv + 5.04559027172444 > 0:
+            if 2.184617295 * cp + 7.22468043 * cv + 20.647193691 * pa + 25.339969327 * pv > -1.:
+            # if 2.18 * cp + 7.22 * cv + 20.64 * pa + 25.33 * pv > -1.:
+                decision = 1
+            else:
+                decision = 0
+            predictions.append(decision)
+        return predictions
+
+
+class Cartpole_moeth_approximated_policy:
+    def predict(self, observations):
+        predictions = []
+        for i in range(observations.shape[0]):
+            observation = observations[i]
+            cp, cv, pa, pv = observation
+            if 7.22468043 * cv + 25.339969327 * pv > -1.:
+                decision = 1
+            else:
+                decision = 0
+            predictions.append(decision)
+        return predictions
+
+
+def cartpole():
+    # NOTE: with 1500 interpolation_steps DT policy is presented
+    # more correctly (there are edge cases
+    visualizer = CartpoleVisualization(interpolation_steps=200)
+    visualizer3D = CartpoleVisualization(interpolation_steps=15)
+
+    rl_policy = load_rl_policy('cartpole')
+
+    # from viper.cartpole.cartpole import create_gym_env
+    # env = create_gym_env()
+    # obs = env.reset()
+    # obs = np.array([0., 2., 0., -0.15])
+    # env.env.state = obs
+    # while True:
+    #     env.render()
+    #     action = rl_policy.get_action(obs)
+    #     obs, rew, done, _ = env.step(action)
+    #     if done:
+    #         break
+
+    policy = Cartpole_moeth_extracted_policy()
+    visualizer.visualize_policy(
+        policy,
+        out_file='/home/unk/Downloads/visualization/extracted.pdf')
+
+    visualizer.visualize_policy(
+        rl_policy,
+        out_file='/home/unk/Downloads/visualization/cartpole_drl_policy.pdf')
+    visualizer3D.visualize_policy_3D(
+        rl_policy,
+        out_file='/home/unk/Downloads/visualization/cartpole_drl_policy3D.pdf')
+
+    viper_policy = load_policy(
+        '/home/unk/projects/explainableRL/viper/data/filtered_v3_only_pareto_results/cartpole/0/ViperPlus',
+        'dt_policy_d6.pk')
+    visualizer.visualize_policy(
+        viper_policy,
+        out_file='/home/unk/Downloads/visualization/cartpole_viper_policy.pdf')
+    visualizer3D.visualize_policy_3D(
+        viper_policy,
+        out_file='/home/unk/Downloads/visualization/cartpole_viper_policy3D.pdf')
+    save_dt_policy_viz(viper_policy,
+                       '/home/unk/Downloads/visualization',
+                       'dt_policy_d6.dot',
+                       ['cp', 'cv', 'pa', 'pv'],
+                       ['left', 'right'])
+
+    moe_policy = load_policy(
+        '/home/unk/projects/explainableRL/viper/data/filtered_v3_only_pareto_results/cartpole/0/MOE',
+        'moe_policy_e2_d0.pk')
+    visualizer.visualize_policy(
+        moe_policy,
+        out_file='/home/unk/Downloads/visualization/cartpole_moet_policy.pdf')
+    visualizer3D.visualize_policy_3D(
+        moe_policy,
+        out_file='/home/unk/Downloads/visualization/cartpole_moet_policy3D.pdf')
+
+    moe_hard_policy = load_policy(
+        '/home/unk/projects/explainableRL/viper/data/filtered_v3_only_pareto_results/cartpole/0/MOEHard',
+        'moe_policy_e2_d0.pk')
+    moe_hard_policy.hard_prediction = True
+    visualizer.visualize_policy(
+        moe_hard_policy,
+        out_file='/home/unk/Downloads/visualization/cartpole_moeth_policy.pdf')
+    visualizer3D.visualize_policy_3D(
+        moe_hard_policy,
+        out_file='/home/unk/Downloads/visualization/cartpole_moeth_policy3D.pdf')
+
+
+def main():
+    # mountaincar()
+    cartpole()
 
 
 if __name__ == '__main__':
