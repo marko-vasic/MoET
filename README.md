@@ -27,7 +27,8 @@ python -m viper.evaluation.main \
 ```
 This trains a Viper model with maximum depth 2, for 5 iterations of Dagger (we used 40 in our work). 
 Output will be stored in `${PROJECT_ROOT}/data/experiments/cartpole/test/ViperPlus/`.
-In that folder you can convert dot file representing student policy into a pdf file to visualize it, e.g., using: `dot -Tpdf dt_policy_d2.dot -o dt_policy_d2.pdf` (example of a learned policy):
+In that folder you can convert dot file representing student policy into a pdf file to visualize it, e.g., using: `dot -Tpdf dt_policy_d2.dot -o dt_policy_d2.pdf`.
+Example of the learned policy (*cp* -- cart position, *cv* -- cart velocity, *pa* -- pole angle and *pv* -- pole angular velocity represent features of the observation space in cartpole).
 ![DT Policy](data/experiments/cartpole/example.svg)
 Next, you can evaluate the trained model:
 
