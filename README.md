@@ -85,7 +85,8 @@ To create different configurations to train various models as we did in our eval
 cd ${PROJECT_ROOT}/scripts/experiments
 ./create_configurations.sh --subject=cartpole
 ```
-This will create configurations for Cartpole environment, in a similar way you can create it for others.
+This will create configurations for Cartpole environment, in a similar way you can create it for other environments.
+Currently supported subjects are: *cartpole*, *lunarlander*, *acrobot*, *mountaincar* and *pong*.
 Inside of the `paramfiles/paramlist_cartpole` you will find one experiment per one line, which you can execute as you wish.
 
 Additionally, when we train MOET models we examine couple of the best configurations and perform parameter sweeps on them.
