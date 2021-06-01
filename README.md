@@ -102,4 +102,5 @@ The parameter file will be saved in `paramfiles/paramlist_cartpole_parameter_swe
 
 You can do the same for other subjects. You can also encode yourself
 which configurations you want to do experiments with by controlling
-value of variable EXPERT_DEPTH_PAIRS.
+value of variable `EXPERT_DEPTH_PAIRS` in
+`create_parameter_sweeps.sh`.
