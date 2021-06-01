@@ -10,24 +10,6 @@ readonly LEARNING_RATE_DECAYS=(1.)
 readonly LOG_FREQUENCIES=(-1)
 readonly MAX_ITERS=(40)
 
-# Acrobot
-# # new-sweeps
-# readonly EXPERT_DEPTH_PAIRS=(16 11 2 2 15 11) 
-# new-sweeps2
-# readonly EXPERT_DEPTH_PAIRS=(16 0 15 1 16 9)
-
-# # Mountaincar
-# readonly EXPERT_DEPTH_PAIRS=(2 3 2 5 2 8 3 6 3 7 4 1 4 2 4 4 4 5 5 1 6 1 7 2 7 6 8 2 8 5)
-
-# Pong
-# readonly EXPERT_DEPTH_PAIRS=(16 21)
-
-# Cartpole
-# readonly EXPERT_DEPTH_PAIRS=(2 0 4 0 8 0)
-
-# Lunarlander
-# readonly EXPERT_DEPTH_PAIRS=(8 17 6 3 6 17 7 0)
-
 readonly EXPERIMENT_NAME="sweeps"
 
 # Returns a command for running evaluation.
