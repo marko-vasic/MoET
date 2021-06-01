@@ -87,11 +87,12 @@ cd ${PROJECT_ROOT}/scripts/experiments
 ```
 This will create configurations for Cartpole environment, in a similar way you can create it for the other environments
 (currently supported subjects are: *cartpole*, *lunarlander*, *acrobot*, *mountaincar* and *pong*).
-Inside of the `paramfiles/paramlist_cartpole` you will find one experiment per one line, which you can execute as you wish.
+Inside of the `paramfiles/paramlist_cartpole` you will find a list of bash commands one experiment per line.
+You can execute the commands in a way you like (in a single thread, multiple threads, distributed), and in that way train models for different configurations.
 
-Additionally, when we train MOET models we examine couple of the best configurations and perform parameter sweeps on them.
-Note that the previous files trains all MOET models with same initial learning rate and other parameters.
-To create configurations with parameter sweeps you can:
+Additionally, when we trained MOET models in the previous way we examined couple of the best configurations and performed parameter sweeps on them.
+Note that the previous trains all MOET models with the same initial learning rate and other hyperparameters.
+To create configurations with parameter sweeps you can run the following:
 
 ``` shell
 cd ${PROJECT_ROOT}/scripts/experiments
