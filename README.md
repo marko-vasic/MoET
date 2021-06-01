@@ -104,3 +104,12 @@ You can do the same for other subjects. You can also encode yourself
 which configurations you want to do experiments with by controlling
 value of variable `EXPERT_DEPTH_PAIRS` in
 `create_parameter_sweeps.sh`.
+
+## Verification
+We have included an cartpole MOET_h model that is verified under
+`${PROJECT_ROOT}/data/experiments/verified`. You can run its
+verification by executing:
+``` shell
+cd python
+python -m viper.verification.cartpole
+```

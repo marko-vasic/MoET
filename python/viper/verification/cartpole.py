@@ -6,6 +6,10 @@ from z3 import *
 import time
 import copy
 
+import matplotlib
+import matplotlib.pyplot as plt
+
+
 A = np.array([[0.0, 1.0, 0.0, 0.0],
               [0.0, 0.0, -7.1707, 0.0],
               [0.0, 0.0, 0.0, 1.0],
@@ -173,11 +177,13 @@ def _make_moe_policy_func_helper(experts, gating, z):
 
 
 def solve_viper(depth):
-    dirname = '../data/cartpole/best/ViperPlus'
+    dirname = '../data/experiments/best/cartpole/ViperPlus'
     fname = 'dt_policy_d{}.pk'.format(depth)
 
     policy = load_policy(dirname, fname).tree
     policy_func = lambda z: make_policy_func(policy, z)
+
+    log('Verifying policy {}'.format(fname), INFO)
 
     start = time.time()
     solve_policy(policy_func)
@@ -192,13 +198,14 @@ def solve_viper_all():
 
 
 def solve_moe(experts, depth):
-    dirname = '../data/cartpole/best/MOEHard'
-    fname = 'moe_policy_e{}_d{}.pk'.format(experts, depth)
+    dirname = '../data/experiments/verified/cartpole/MOEHard'
 
-    log('Verifying policy {}'.format(fname), INFO)
+    fname = 'moe_policy_e{}_d{}.pk'.format(experts, depth)
 
     moe_policy = load_policy(dirname, fname)
     policy_func = lambda z: make_policy_func_moe(moe_policy.moe, z)
+
+    log('Verifying policy {}'.format(fname), INFO)
 
     start = time.time()
     solve_policy(policy_func)
@@ -255,30 +262,36 @@ def plot():
     plt.legend()
 
     # function to show the plot
-    plt.savefig('/home/UNK/Downloads/vvvv.pdf')
+    plt.savefig('verification-times.pdf')
     plt.show()
 
 
 def plot_new(times, experts, depths):
-    import matplotlib
-    import matplotlib.pyplot as plt
-
     matplotlib.rcParams.update({'font.size': 14})
 
-    for depth in depths:
+    x_interval = range(int(min(experts)), int(max(experts)) + 1)
+    matplotlib.pyplot.xticks(x_interval)
+
+    for i in range(len(depths)):
+        depth = depths[i]
         # plotting the line 1 points
-        plt.plot(experts, times[depth - 1], label="d{}".format(depth))
+        plt.plot(experts,
+                 times[i],
+                 linewidth=4,
+                 label="d{}".format(depth))
 
     # naming the x axis
     plt.xlabel('#experts')
     # naming the y axis
     plt.ylabel('time [s]')
 
+    plt.grid()
+
     # show a legend on the plot
     plt.legend()
 
     # function to show the plot
-    plt.savefig('/home/UNK/Downloads/vvvv.pdf')
+    plt.savefig('verification_times.pdf')
     plt.show()
 
 
@@ -288,11 +301,13 @@ if __name__ == '__main__':
     # solve_viper(1)
     # solve_moe(2, 2)
 
-    depths = [1, 2, 3, 4, 5]
-    experts = [2, 3, 4, 5, 6, 7, 8]
+    # depths = [0, 1, 2, 3]
+    # experts = [2, 3, 4, 5, 6, 7, 8]
+
+    depths = [0]
+    experts = [2]
 
     times = solve_moe_all(experts, depths)
-    log('verification times: {}'.format(times), INFO)
-    plot_new(times, experts, depths)
 
-    # plot()
+    log('verification times: {}'.format(times), INFO)
+    # plot_new(times, experts, depths)
