@@ -1,16 +1,32 @@
-# MoET: Mixture of Expert Trees and its Application to Verifiable Reinforcement Learning
-In this project we introduce Mixture of Expert Trees (MoET), which enhances Mixture of Experts (MoE) framework to support non-differentiable experts.
+# MoËT: Mixture of Expert Trees and its Application to Verifiable Reinforcement Learning
+In this project we introduce Mixture of Expert Trees (MoËT), which enhances Mixture of Experts (MoE) framework to support non-differentiable experts.
 
 Next, we provide instructions on how to use the code and how to reproduce paper results.
 
-## Install virtualenv
+## Relevant publication
+Paper that presents work of this project is:
+```
+@article{VASIC202234,
+title = {MoËT: Mixture of Expert Trees and its application to verifiable reinforcement learning},
+journal = {Neural Networks},
+volume = {151},
+pages = {34-47},
+year = {2022},
+author = {Marko Vasić and Andrija Petrović and Kaiyuan Wang and Mladen Nikolić and Rishabh Singh and Sarfraz Khurshid}
+}
+```
+If you would like to reference this work in an academic publication please cite the previous paper.
+
+## Running code
+
+### Install requirements
 - Create a virtualenv. We created virtualenv with Python 2 (Python
   2.7.17) by running: `virtualenv ${OPT}/v_env`
 - Activate the environment: `source ${OPT}/v_env/bin/activate`
 - Install necessary requirements: `pip install -r requirements.txt`
 
-## Test code
-To test the code, do the following from the project root directory:
+### Basic Workflow
+**Training a model.** To train a model, do the following from the project root directory:
 
 ``` shell
 cd python
@@ -32,7 +48,7 @@ Example of the learned policy:
 ![DT Policy](data/experiments/cartpole/example.svg)
 Features of the observation space in cartpole are represented by *cp* (cart position), *cv* (cart velocity), *pa* (pole angle) and *pv* (pole angular velocity).
 
-Next, you can evaluate the trained model:
+**Evaluating a model.** You can evaluate the trained model with a following command:
 
 ``` shell
 python -m viper.evaluation.main \
@@ -47,7 +63,8 @@ python -m viper.evaluation.main \
     --choose_best_student_strategy=reward_and_mispredictions
 ```
 The experiment results will be stored in `${PROJECT_ROOT}/data/experiments/cartpole/test/ViperPlus/ViperPlus_evaluation.tex`
-Similarly, you can train a MOET model:
+
+**MoËT.** Similarly, you can train a MOET model:
 
 ``` shell
 python -m viper.evaluation.main \
@@ -62,7 +79,7 @@ python -m viper.evaluation.main \
     --use_adam_optimizer=True \
     --choose_best_student_strategy=reward_and_mispredictions
 ```
-Or, a MOETHard model:
+**MoËTHard.** Or, a MoËTHard model:
 
 ``` shell
 python -m viper.evaluation.main \
@@ -78,7 +95,7 @@ python -m viper.evaluation.main \
     --choose_best_student_strategy=reward_and_mispredictions
 ```
 
-## Create configurations for experiments
+### Running multiple configurations
 To create different configurations to train various models as we did in our evaluation, do the following:
 
 ``` shell
@@ -105,7 +122,7 @@ which configurations you want to do experiments with by controlling
 value of variable `EXPERT_DEPTH_PAIRS` in
 `create_parameter_sweeps.sh`.
 
-## Verification
+### Verification
 We have included an cartpole MOET_h model that is verified under
 `${PROJECT_ROOT}/data/experiments/verified`. You can run its
 verification by executing:
