@@ -6,13 +6,13 @@ Next, we provide instructions on how to use the code and how to reproduce paper 
 ## Relevant publication
 Paper that presents work of this project is:
 ```
-@article{VASIC202234,
-title = {MoËT: Mixture of Expert Trees and its application to verifiable reinforcement learning},
-journal = {Neural Networks},
-volume = {151},
-pages = {34-47},
-year = {2022},
-author = {Marko Vasić and Andrija Petrović and Kaiyuan Wang and Mladen Nikolić and Rishabh Singh and Sarfraz Khurshid}
+@article{vasicETAL22MoET,
+  title = {MoËT: Mixture of Expert Trees and its application to verifiable reinforcement learning},
+  journal = {Neural Networks},
+  volume = {151},
+  pages = {34-47},
+  year = {2022},
+  author = {Marko Vasić and Andrija Petrović and Kaiyuan Wang and Mladen Nikolić and Rishabh Singh and Sarfraz Khurshid}
 }
 ```
 If you would like to reference this work in an academic publication please cite the previous paper.
